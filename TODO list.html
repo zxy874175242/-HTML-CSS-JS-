@@ -116,7 +116,6 @@
             test.innerHTML = e
             List.appendChild(test)
 
-            // 如果放在List.appendChild之前的话会没效果，应该是要等test节点加载好了之后才行
             var testX = document.createElement("div")
             testX.innerText = '×'
             testX.style.float = 'right'
@@ -126,7 +125,6 @@
 
             testX.onclick =function(){
 
-                //innerText里面文字还包含了最后的X，不知道怎么处理合适就截断了
                 var tmp = this.parentNode.innerText
                 tmp = tmp.split("\n")[0]
                 console.log(tmp);
@@ -143,7 +141,6 @@
             test.innerText = e
             List.appendChild(test)
 
-            // 如果放在List.appendChild之前的话会没效果
             var testX = document.createElement("div")
             testX.innerText = '×'
             testX.style.float = 'right'
@@ -153,7 +150,6 @@
 
             testX.onclick =function(){
 
-                //innerText里面文字还包含了最后的X，不知道怎么处理合适就截断了
                 var tmp = this.parentNode.innerText
                 tmp = tmp.split("\n")[0]
                 console.log(tmp);
