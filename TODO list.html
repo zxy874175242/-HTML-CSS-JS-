@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="">
+    <title>Test</title>
+    <style>
+        div , body {
+            margin: 0;
+            padding: 0;
+            font-family: '汉仪新人文宋W';
+        }
+        #list {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+        #inputToDo {
+            margin-left: calc(50% - 200px);
+            height: 50px;
+            width: 400px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+            font-size: 24px;
+            padding-left: 15px;
+            border-radius: 5px;
+            font-family: '汉仪新人文宋W';
+            transition: all 0.3s ease;
+        }
+        #inputToDo:hover {
+            margin-left: calc(50% - 210px);
+            width: 420px;
+        }
+        .ToDo {
+            line-height: 50px;
+            vertical-align: middle;
+            margin-left: calc(50% - 190px);
+            height: 50px;
+            width: 380px;
+            padding-left: 15px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.05);
+            border: 1px solid darkgray;
+            font-size: 18px;
+            font-family: '汉仪新人文宋W';
+        }
+
+    </style>
+</head>
+
+<body>
+    <button onclick="todoList = [];resetList()">重置</button>
+
+    <div id="list" >
+        <h1 style="text-align: center;margin-top: 150px;" >TODO List</h1>
+        <input type="text" id="inputToDo" style="margin-top: 5px;" value="test" onkeyup="inputFunc(event)" placeholder="请输入待办事项">
+        <!-- <div class="ToDo"></div> -->
+    </div>
+</body>
+<script>
+
+    // 在加载完毕时还原内置的待办事项
+    window.onload = function(){
+        resetList()
+    }
+
+    // 存所有的待办事项
+    var todoList = ['测试1','测试2']
+    var inputToDo = document.getElementById("inputToDo")
+    var List = document.getElementById("list")
+
+    // 回车添加新事件
+    function inputFunc(e) {
+
+        if(inputToDo.value != ''){
+            if(e.keyCode == 13){
+                todoList.push(inputToDo.value)
+                inputToDo.value = ''
+                resetList()
+            }
+            else{
+                searchRes(inputToDo.value)
+            }
+        }
+        else{
+            resetList()
+        }    
+    }
+
+
+    // 模糊搜索
+    function searchRes(key) {
+        // console.log("在匹配了"+key);
+        var todoYes = []
+        var todoNo = []
+        // 正则匹配,包含属性 "g"、"i" 和 "m"，分别用于指定全局匹配、区分大小写的匹配和多行匹配。
+        var keyy = new RegExp(key,'gm')
+        todoList.forEach(e => {
+            // 检测todoList里有没有
+            if(keyy.test(e)){
+                // '$&'与 regexp 相匹配的子串。
+                var newToDo = e.replace(keyy,'<font color=red>$&</font>')
+                todoYes.push(newToDo)
+            }else{
+                todoNo.push(e)
+            }
+        })
+
+        while(document.getElementsByClassName("ToDo").length != 0){
+            List.removeChild(document.getElementsByClassName("ToDo")[0])
+        }
+        todoYes.forEach(e => {
+            var test = document.createElement("div")
+
+            test.className = 'ToDo'
+            // 要用innerHTML，不能用innerText,text会把标签直接当成string显示出来
+            test.innerHTML = e
+            List.appendChild(test)
+
+            // 如果放在List.appendChild之前的话会没效果，应该是要等test节点加载好了之后才行
+            var testX = document.createElement("div")
+            testX.innerText = '×'
+            testX.style.float = 'right'
+            testX.style.marginRight = '15px'
+            testX.style.cursor = 'pointer'
+            test.appendChild(testX)
+
+            testX.onclick =function(){
+
+                //innerText里面文字还包含了最后的X，不知道怎么处理合适就截断了
+                var tmp = this.parentNode.innerText
+                tmp = tmp.split("\n")[0]
+                console.log(tmp);
+
+                var index = todoList.indexOf(tmp)
+                todoList.splice(index,1)
+                List.removeChild(this.parentNode)
+            }
+        })
+        todoNo.forEach(e => {
+            var test = document.createElement("div")
+
+            test.className = 'ToDo'
+            test.innerText = e
+            List.appendChild(test)
+
+            // 如果放在List.appendChild之前的话会没效果
+            var testX = document.createElement("div")
+            testX.innerText = '×'
+            testX.style.float = 'right'
+            testX.style.marginRight = '15px'
+            testX.style.cursor = 'pointer'
+            test.appendChild(testX)
+
+            testX.onclick =function(){
+
+                //innerText里面文字还包含了最后的X，不知道怎么处理合适就截断了
+                var tmp = this.parentNode.innerText
+                tmp = tmp.split("\n")[0]
+                console.log(tmp);
+
+                var index = todoList.indexOf(tmp)
+                todoList.splice(index,1)
+                List.removeChild(this.parentNode)
+            }
+        })
+
+    }
+
+    // 重置列表
+    function resetList(){
+        while(document.getElementsByClassName("ToDo").length != 0){
+            List.removeChild(document.getElementsByClassName("ToDo")[0])
+        }
+        todoList.forEach(e => {
+            var test = document.createElement("div")
+
+            test.className = 'ToDo'
+            test.innerText = e
+            List.appendChild(test)
+
+            // 如果放在List.appendChild之前的话会没效果
+            var testX = document.createElement("div")
+            testX.innerText = '×'
+            testX.style.float = 'right'
+            testX.style.marginRight = '15px'
+            testX.style.cursor = 'pointer'
+            test.appendChild(testX)
+
+            testX.onclick =function(){
+
+                //innerText里面文字还包含了最后的X，不知道怎么处理合适就截断了
+                var tmp = this.parentNode.innerText
+                tmp = tmp.split("\n")[0]
+                console.log(tmp);
+
+                var index = todoList.indexOf(tmp)
+                todoList.splice(index,1)
+                List.removeChild(this.parentNode)
+            }
+        })
+    }
+
+</script>
+
+</html>
