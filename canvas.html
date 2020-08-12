@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        html,body {
+            height:100%
+        }
+        div , body {
+            margin: 0;
+            padding: 0;
+            font-family: '汉仪新人文宋W';
+        }
+        .main{
+            display: flex;
+            width: 100vw;
+            height: 100%;
+            /* overflow: hidden; */
+
+        }
+        .center {
+            flex: 1;
+            height: 100%;
+            background-color: white;
+        }
+        .left{
+            flex: 0 0 200px;
+            height: 100%;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            padding-left: 25px;
+            
+        }
+        .right{
+            flex: 0 0 200px;;
+            height: 100%;
+            background-color: white;
+        }
+        #canvas {
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+            margin-top: 50px;
+        }
+        .btn {
+            flex: 1;
+        }
+        .btn2 {
+            flex: 2;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class = "main">
+        <div class="left">
+            <div class="btn"></div>
+            <div class = "btn">
+                <input name = "brushType" type = "radio" value="矩形标注" />绘制矩形
+            </div>
+            <div class = "btn">
+                <input name = "brushType" type = "radio" value="多边形标注" />绘制多边形
+            </div>
+            <div class="btn"></div>
+
+            <div class = "btn2">
+                <button id = "btnDownload">下载</button>      
+                <button id = "undo">撤销</button>      
+                <button id = "clear">清空画布</button>      
+            </div>
+        </div>
+        <div class = "center">
+            <canvas id = "canvas"></canvas>
+            <!-- <div class="content"></div> -->
+        </div>
+    </div>
+</body>
+<script>
+
+    // 存历史记录
+    var canvasAll = [[100,200,200,200,200,100,100,100],[00,100,300,200,400,600]]
+    // 画多边形时暂存点
+    var createPTmp = []
+
+    var winW = document.documentElement.clientWidth;
+    var winH = document.documentElement.clientHeight;
+
+    var canvas = document.getElementById("canvas");
+    canvas.height = winH - 100
+    canvas.width = winW - 300
+    var ctx = canvas.getContext('2d')
+    ctx.fillStyle = 'rgba(51,135,255,0.5)'
+    ctx.fillRect(0, 0, 200, 200)
+    restoreCanvas()
+    brush_Listener()
+
+    var btn_down = document.getElementById("btnDownload")
+    btn_down.onclick = () => {
+        var url = this.saveAsPNG()
+        this.downLoad(url)
+    }
+
+    var btn_clear = document.getElementById("clear")
+
+    btn_clear.onclick = () => {
+        this.canvasAll.splice(0)
+        this.restoreCanvas()
+    }
+
+    var btn_undo = document.getElementById("undo")
+
+    btn_undo.onclick = () => {
+        this.canvasAll.splice(canvasAll.length-1,canvasAll.length)
+        this.restoreCanvas()
+    }
+
+    function restoreCanvas () {
+      var _this = this
+
+      _this.ctx.clearRect(0, 0, _this.canvas.width, _this.canvas.height)
+      _this.canvasAll.forEach(function (element) {
+        _this.ctx.beginPath()
+        // console.log(element)
+        let len = element.length / 2
+        var i = 0
+        _this.ctx.moveTo(element[0], element[1])
+        for (i = 1; i < len; i++) {
+          _this.ctx.lineTo(element[2 * i], element[2 * i + 1])
+        }
+        // _this.ctx.stroke()
+        _this.ctx.closePath()
+        _this.ctx.fillStyle = 'rgba(51,135,255,0.54)'
+        _this.ctx.fill()
+      })
+    }
+
+    //获得当前画笔属性
+    function getRadioValue(RadioName){
+        var obj;   
+        obj=document.getElementsByName(RadioName);
+        if(obj!=null){
+            var i;
+            for(i=0;i<obj.length;i++){
+                if(obj[i].checked){
+                    return obj[i].value;           
+                }
+            }
+        }
+        return null;
+    }
+
+    // 监听鼠标事件
+    function brush_Listener () {
+      let r1, r2
+      let _this = this
+      _this.createPTmp = []
+      this.canvas.onmousedown = function (e) {
+        console.log('onmousedown')
+        var radio1 = _this.getRadioValue("brushType")
+        if (radio1 == '矩形标注') {
+          _this.canvas.style.cursor = 'crosshair'
+          r1 = e.layerX
+          r2 = e.layerY
+          _this.createR(e, 'begin', r1, r2)
+        } else if (radio1 == '多边形标注') {
+          _this.canvas.style.cursor = 'crosshair'
+          r1 = e.layerX
+          r2 = e.layerY
+          _this.createPTmp.push(r1)
+          _this.createPTmp.push(r2)
+          _this.createP(e, 'begin', r1, r2)
+        } else {
+          _this.canvas.style.cursor = 'auto'
+        }
+      }
+      this.canvas.onmouseup = function (e) {
+        console.log('onmouseup')
+        var radio1 = _this.getRadioValue("brushType")
+        if (radio1 == '矩形标注') {
+          _this.canvas.style.cursor = 'crosshair'
+          _this.createR(e, 'end', r1, r2)
+          r1 = null
+          r2 = null
+        } else if (radio1 == '多边形标注') {
+          _this.canvas.style.cursor = 'crosshair'
+          r1 = e.layerX
+          r2 = e.layerY
+        } else {
+          _this.canvas.style.cursor = 'auto'
+        }
+      }
+      this.canvas.ondblclick = function (e) {
+        console.log('dblclick')
+        var radio1 = _this.getRadioValue("brushType")
+        if (radio1 == '矩形标注') {
+          _this.canvas.style.cursor = 'crosshair'
+        } else if (radio1 == '多边形标注') {
+          _this.canvas.style.cursor = 'help'
+          let id = _this.pictureId
+          _this.createP(e, 'end', r1, r2)
+          _this.canvasAll.push(_this.createPTmp)
+          _this.restoreCanvas()
+          _this.createPTmp = []
+        } else {
+          _this.canvas.style.cursor = 'auto'
+        }
+      }
+    }
+
+    // 画矩形
+    function createR (e, status, r1, r2) {
+      let _this = this
+      let r
+      if (status == 'begin') {
+        console.log('onmousemove')
+        _this.canvas.onmousemove = function (e) {
+          _this.ctx.clearRect(0, 0, _this.canvas.width, _this.canvas.height)
+
+          let rx = e.layerX - r1
+          let ry = e.layerY - r2
+
+          // 把每个标注画出来
+          _this.restoreCanvas()
+
+          _this.ctx.beginPath()
+          _this.ctx.rect(r1, r2, rx, ry)
+          _this.ctx.closePath()
+          _this.ctx.strokeStyle = 'black'
+          _this.ctx.stroke()
+          // let id = _this.pictureId
+          // _this.canvasAll[id].forEach(function (element, index) {
+          //   _this.ctx.fillRect(element[0], element[1], element[2], element[3])
+          //   // console.log(index)
+          // })
+
+          // _this.ctx.globalAlpha = 0.5;
+          // _this.ctx.clearRect(0,0,_this.canvas.width,_this.canvas.height);
+        }
+      } else if (status == 'end') {
+        _this.canvas.onmousemove = function (e) {
+
+        }
+
+        _this.ctx.clearRect(0, 0, _this.canvas.width, _this.canvas.height)
+        console.log('X:' + e.layerX + 'Y:' + e.layerY)
+        console.log('r1:' + r1 + 'r2:' + r2)
+        let layerX = e.layerX
+        let layerY = e.layerY
+        let rx = layerX - r1
+        let ry = layerY - r2
+
+        // 排除点击就添加标签的可能
+        if ((rx >= 1 || rx <= -1) && (ry >= 1 || ry <= -1)) {
+          _this.ctx.beginPath()
+          _this.ctx.fillStyle = 'rgba(51,135,255,0.54)'
+          _this.ctx.fillRect(r1, r2, rx, ry)
+          console.log(r1+' '+r2+' '+rx+' '+ry)
+          // _this.ctx.stroke()
+
+          // 把每个标注画出来
+
+          let id = _this.pictureId
+          // 存到记录里
+          var num = [r1, r2, r1+rx, r2,r1+rx, r2+ry, r1, r2+ry]
+          console.log('num')
+          console.log(num)
+          _this.canvasAll.push(num)
+          _this.restoreCanvas()
+
+          // console.log('id = ',id)
+          // console.log(_this.canvasAll)
+          // _this.ctx.globalAlpha = 0.5;
+        } else {
+          _this.restoreCanvas()
+        }
+      }
+    }
+
+    // 画多边形
+    function createP (e, status, r1, r2) {
+    
+      let _this = this
+      // 第一条线
+      if (status == 'begin') {
+        _this.canvas.onmousemove = function (e) {
+          _this.ctx.clearRect(0, 0, _this.canvas.width, _this.canvas.height)
+
+          // 把每个标注画出来
+          _this.restoreCanvas()
+          // 第一条线
+          if (_this.createPTmp.length == 2) {
+            _this.ctx.beginPath()
+            _this.ctx.moveTo(r1, r2)
+            var r1_1 = e.layerX
+            var r2_2 = e.layerY
+            _this.ctx.lineTo(r1_1, r2_2)
+            _this.ctx.strokeStyle = 'black'
+            _this.ctx.stroke()
+
+          } else if (_this.createPTmp.length > 2) {
+            let i = 0
+            _this.ctx.beginPath()
+            _this.ctx.moveTo(_this.createPTmp[0], _this.createPTmp[1])
+            for (i = 1; i < _this.createPTmp.length / 2; i++) {
+              _this.ctx.lineTo(_this.createPTmp[2 * i], _this.createPTmp[2 * i + 1])
+            }
+            r1 = e.layerX
+            r2 = e.layerY
+            _this.ctx.lineTo(r1, r2)
+            _this.ctx.closePath()
+            _this.ctx.strokeStyle = 'black'
+            _this.ctx.stroke()
+          }
+        }
+      } else if (status == 'end') {
+        _this.canvas.onmousemove = function (e) {
+
+        }
+      }
+    }
+
+    function saveAsPNG (){
+        return canvas.toDataURL("image/png");
+    }
+
+    /**
+     * @author web得胜
+     * @param {String} url 需要下载的文件地址
+     * */
+    function downLoad(url){
+        var oA = document.createElement("a");
+        oA.download = '';// 设置下载的文件名，默认是'下载'
+        oA.href = url;
+        document.body.appendChild(oA);
+        oA.click();
+        oA.remove(); // 下载之后把创建的元素删除
+    }
+
+</script>
+</html>
