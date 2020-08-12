@@ -27,3 +27,17 @@
 
 ## Canvas画板
 
+利用`<canvas>`标签实现简单画布功能
+
+- 矩形绘制
+- 任意多边形
+
+实现功能
+
+- 撤销
+- 保存canvas为图片并指定文件名
+
+![image-20200812155439179](https://juanmdbucket.oss-cn-beijing.aliyuncs.com/20200812155441.png)
+
+## 书籍翻页效果
+

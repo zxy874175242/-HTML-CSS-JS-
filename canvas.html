@@ -11,7 +11,6 @@
         div , body {
             margin: 0;
             padding: 0;
-            font-family: '汉仪新人文宋W';
         }
         .main{
             display: flex;
@@ -23,12 +22,13 @@
         .center {
             flex: 1;
             height: 100%;
-            background-color: white;
+            background-color:gainsboro;
+
         }
         .left{
             flex: 0 0 200px;
             height: 100%;
-            background-color: white;
+            background-color: gainsboro;
             display: flex;
             flex-direction: column;
             padding-left: 25px;
@@ -37,11 +37,12 @@
         .right{
             flex: 0 0 200px;;
             height: 100%;
-            background-color: white;
+            background-color:gainsboro;
         }
         #canvas {
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.15);
             margin-top: 50px;
+            border-radius: 10px;
         }
         .btn {
             flex: 1;
@@ -49,29 +50,87 @@
         .btn2 {
             flex: 2;
         }
+        .downloadAlert {
+            display: none;
+            border-radius: 10px;
+            position: fixed;
+            width: 300px;
+            height: 200px;
+            top: calc(50% - 100px);
+            left: calc(50% - 200px);
+            background-color: white;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+            flex-direction: column;
+            /* align-items: center;
+            justify-content: center; */
+            padding: 20px 40px;
+        }
+        .blackcolor {
+            opacity: 0;
+            pointer-events: none;
+            position: fixed;
+            width: 100vw;
+            height: 100vh;
+            top: 0;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0.15);
+        }
+        .alertContent{
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        input {
+            height: 25px;
+            font-size: 15px;
+            line-height: 25px;
+            vertical-align: middle;
+        }
+        button {
+            min-width: 60px;
+            height: 30px;
+        }
         
     </style>
 </head>
 <body>
     <div class = "main">
+        <div class = "downloadAlert" id="downloadAlert">
+
+            <div class = "alertContent" style="flex:1;font-size: 30px;justify-content: left;">下载图片</div>
+            <div class = "alertContent"  style="flex:1;justify-content: left;">图片名称<input value="" id = "fileName" style="margin-left: 25px;"/></div>
+            <div class = "alertContent" style="flex:1;justify-content: flex-end;">
+                <button style="flex:0" id = "download2">下载</button>
+                <div style="flex:0 0 25px"></div>
+                <button style="flex:0" id="cancel">取消</button>
+            </div>
+        
+        
+        </div>
+        <div class = "blackcolor" id = "color"></div>
         <div class="left">
             <div class="btn"></div>
             <div class = "btn">
                 <input name = "brushType" type = "radio" value="矩形标注" />绘制矩形
             </div>
             <div class = "btn">
-                <input name = "brushType" type = "radio" value="多边形标注" />绘制多边形
+                <input name = "brushType" checked = "true" type = "radio" value="多边形标注" />绘制多边形
             </div>
             <div class="btn"></div>
 
             <div class = "btn2">
                 <button id = "btnDownload">下载</button>      
-                <button id = "undo">撤销</button>      
+                <button id = "undo">撤销</button> 
+                <br>  
+                <div style="margin-top: 10px;"></div>   
                 <button id = "clear">清空画布</button>      
             </div>
         </div>
         <div class = "center">
             <canvas id = "canvas"></canvas>
+            <div></div>
             <!-- <div class="content"></div> -->
         </div>
     </div>
@@ -89,6 +148,7 @@
     var canvas = document.getElementById("canvas");
     canvas.height = winH - 100
     canvas.width = winW - 300
+    canvas.style.backgroundColor = 'white'
     var ctx = canvas.getContext('2d')
     ctx.fillStyle = 'rgba(51,135,255,0.5)'
     ctx.fillRect(0, 0, 200, 200)
@@ -96,9 +156,23 @@
     brush_Listener()
 
     var btn_down = document.getElementById("btnDownload")
+    var btn_down2 = document.getElementById("download2")
+    var btn_cancel = document.getElementById("cancel")
+    var downloadAlert = document.getElementById("downloadAlert")
+    var color = document.getElementById("color")
+    var fileName = document.getElementById("fileName")
     btn_down.onclick = () => {
+        downloadAlert.style.display = 'flex';
+        color.style.opacity = 1;
+    }
+    btn_down2.onclick = () => {
+        var name = fileName.value;
         var url = this.saveAsPNG()
-        this.downLoad(url)
+        this.downLoad(url,name)
+    }
+    btn_cancel.onclick = () => {
+        downloadAlert.style.display = 'none';
+        color.style.opacity = 0;
     }
 
     var btn_clear = document.getElementById("clear")
@@ -114,6 +188,7 @@
         this.canvasAll.splice(canvasAll.length-1,canvasAll.length)
         this.restoreCanvas()
     }
+
 
     function restoreCanvas () {
       var _this = this
@@ -327,10 +402,11 @@
     /**
      * @author web得胜
      * @param {String} url 需要下载的文件地址
+     * @param {String} name 需要下载的文件地址
      * */
-    function downLoad(url){
+    function downLoad(url,name){
         var oA = document.createElement("a");
-        oA.download = '';// 设置下载的文件名，默认是'下载'
+        oA.download = name;// 设置下载的文件名，默认是'下载'
         oA.href = url;
         document.body.appendChild(oA);
         oA.click();
